@@ -20,7 +20,7 @@ make certs
 make runs
 
 # 4. Run client
-make run
+make runc
 ```
 
 # TODO
