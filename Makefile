@@ -1,4 +1,4 @@
-.PHONY: ca certs runs runc clean help
+.PHONY: ca certs runs runs-verify runc runc-err-cert runc-err-cn runc-with-cert clean help
 
 .DEFAULT_GOAL := help
 
