@@ -1,30 +1,24 @@
-HTTPS server with sel-signed certificate.
+Self-signed certificate
+===================================
 
-## Re-generate certificates.
+# Usage
 
-```
-cd certificate/
-./main
-```
-
-### Run HTTPS server
-
-```
-cd https/
-./main
+```shell
+make help
 ```
 
-### Run client
+# Try
 
-```
-cd httpc/
-./main
+```shell
+# 1. Create CA
+make ca
 
-```
+# 2. Create server certificate
+make certs
 
-### Run client with `curl`
+# 3. Run server
+make runs
 
-```
-cd httpc/
-curl --cacert ./cert.pem https://localhost:4001/hello
+# 4. Run client
+make run
 ```

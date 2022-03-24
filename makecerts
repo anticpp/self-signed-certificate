@@ -1,0 +1,24 @@
+#!/bin/bash
+
+
+function makecert() {
+	ca=$1
+	dir=$2
+	name=$3
+
+	echo ""
+	echo "Generating certificate for: ${name}"
+	echo "Using CA: \"${ca}\""
+	echo "Dir: ${dir}"
+
+	mkdir -p ${dir}
+	openssl genrsa -out ${dir}/${name}.key 2048
+	openssl req -new -key ${dir}/${name}.key -out ${dir}/${name}.csr -subj "/CN=${name}"
+	sudo openssl ca -name ${ca} -in ${dir}/${name}.csr -out ${dir}/${name}.crt
+
+}
+
+makecert "CA_test" "./server/" "test-server"
+
+echo "done."
+
