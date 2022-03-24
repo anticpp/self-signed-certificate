@@ -22,3 +22,7 @@ make runs
 # 4. Run client
 make run
 ```
+
+# TODO
+
+The directory `TODO/` is a standalone program, integrate it with this project.
