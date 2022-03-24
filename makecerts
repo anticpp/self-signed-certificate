@@ -19,6 +19,7 @@ function makecert() {
 }
 
 makecert "CA_test" "./server/" "test-server"
+makecert "CA_test" "./client/" "test-client"
 
 echo "done."
 

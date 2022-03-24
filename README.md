@@ -7,20 +7,39 @@ Self-signed certificate
 make help
 ```
 
-# Try
+# Create certificates
 
-```shell
-# 1. Create CA
+Before testing, create necessary CA/server/client certificates.
+
+```shell=
 make ca
-
-# 2. Create server certificate
 make certs
+```
 
-# 3. Run server
+# Test
+
+Using two terminals to run `make runs` and `make runc`.
+
+```shell=
+# Success test: client verify server certificate success
 make runs
-
-# 4. Run client
 make runc
+
+# Fail test: client verify server certificate fail
+make runs
+make runc-err-cert
+
+# Fail test: client verify server certificate fail, with mismatched hostname
+make runs
+make runc-err-cn
+
+# Fail test: server verify client certificate fail
+make runs-verify
+make runc
+
+# Success test: Mutual verifications success
+make runs-verify
+make runc-with-cert
 ```
 
 # TODO
