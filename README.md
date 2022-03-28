@@ -18,26 +18,24 @@ make certs
 
 # Test
 
-Using two terminals to run `make runs` and `make runc`.
+Open terminal, run a server.
 
 ```shell=
-# Success test: client verify server certificate success
 make runs
-make runc
+```
 
-# Fail test: client verify server certificate fail
-make runs
-make runc-err-cert
+Open the other terminal, run test clients. See the `Makefile` for testcases.
 
-# Fail test: client verify server certificate fail, with mismatched hostname
-make runs
-make runc-err-cn
+```shell=
+make runc-no-verify
+make runc-verify-no-ca
+make runc-verify-host-err
+make runc-verify-succ
+```
 
-# Fail test: server verify client certificate fail
-make runs-verify
-make runc
+# Test mTLS
 
-# Success test: Mutual verifications success
+```shell=
 make runs-verify
 make runc-with-cert
 ```
