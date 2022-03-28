@@ -62,7 +62,7 @@ runc-verify-with-ca:
 	@echo "CAfile...             [YES]"
 	@echo "Verify return error...[YES]"
 	@echo "Verify hostname...    [NO]"
-	@sudo openssl s_client -verify_return_error -CAfile CA_test/cacert.pem
+	@sudo openssl s_client -quiet -verify_return_error -CAfile CA_test/cacert.pem
 
 # Test client with verification, the TLS connection will succ because the hostname is mismatched with server certificate's CN/DNS.
 runc-verify-host-err:
@@ -78,7 +78,7 @@ runc-verify-succ:
 	@echo "CAfile...             [YES]"
 	@echo "Verify return error...[YES]"
 	@echo "Verify hostname...    [YES]"
-	@sudo openssl s_client -verify_hostname test-server -verify_return_error -CAfile CA_test/cacert.pem
+	@sudo openssl s_client -quiet -verify_hostname test-server -verify_return_error -CAfile CA_test/cacert.pem
 
 # Test client with client certificate/key, for server side verification.
 runc-with-cert:
