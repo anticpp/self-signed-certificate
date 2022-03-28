@@ -14,7 +14,7 @@ function makecert() {
 	mkdir -p ${dir}
 	openssl genrsa -out ${dir}/${name}.key 2048
 	openssl req -new -key ${dir}/${name}.key -out ${dir}/${name}.csr -subj "/CN=${name}"
-	sudo openssl ca -name ${ca} -in ${dir}/${name}.csr -out ${dir}/${name}.crt
+	sudo openssl ca -batch -name ${ca} -in ${dir}/${name}.csr -out ${dir}/${name}.crt
 
 }
 

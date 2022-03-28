@@ -24,4 +24,7 @@ sudo ln -sf ${PWD}/CA_test /etc/pki/CA_test
 echo ""
 echo "========="
 echo "Succ"
-echo "Complete it: configure /etc/pki/tls/openssl.conf, add [CA_test]."
+echo ""
+echo "Last to complete it:" 
+echo "  - Configure /etc/pki/tls/openssl.conf, add [CA_test] section. "
+echo "  - Configure /etc/pki/tls/openss.conf, set [policy_match] countryName,stateOrProvinceName,organizationName,organizationalUnitName to \"optional\"."
