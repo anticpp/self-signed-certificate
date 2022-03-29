@@ -1,2 +1,4 @@
 pki/
 bin/
+.cert.pem
+.key.pem
