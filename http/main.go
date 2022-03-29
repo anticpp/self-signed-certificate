@@ -18,8 +18,8 @@ func runServer(prog string, args []string) error {
 	fg := flag.NewFlagSet(prog, flag.ExitOnError)
 	fg.StringVar(&addr, "addr", ":4433", "Server address")
 	fg.BoolVar(&insecure, "insecure", false, "Insecure connection")
-	fg.StringVar(&certFile, "certfile", "./server.crt", "Certificate file")
-	fg.StringVar(&keyFile, "keyfile", "./server.key", "Key file")
+	fg.StringVar(&certFile, "cert", "./server.pem", "Certificate file")
+	fg.StringVar(&keyFile, "key", "./server-key.pem", "Key file")
 	fg.Parse(args)
 
 	mux := http.NewServeMux()

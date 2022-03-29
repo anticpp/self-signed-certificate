@@ -12,14 +12,24 @@ function makecert() {
 	echo "Dir: ${dir}"
 
 	mkdir -p ${dir}
-	openssl genrsa -out ${dir}/${name}-key.pem 2048
-	openssl req -new -key ${dir}/${name}-key.pem -out ${dir}/${name}-csr.pem -subj "/CN=${name}"
-	sudo openssl ca -batch -name ${ca} -in ${dir}/${name}-csr.pem -out ${dir}/${name}.pem
+	openssl genrsa \
+            -out ${dir}/${name}-key.pem 2048
 
+    echo "#####WHAT!"
+	openssl req -new \
+            -key ${dir}/${name}-key.pem \
+            -out ${dir}/${name}-csr.pem \
+            -subj "/CN=${name}" \
+            -addext "subjectAltName=DNS.1:localhost,DNS.2:127.0.0.1" 
+
+	sudo openssl ca -batch \
+            -name ${ca} \
+            -in ${dir}/${name}-csr.pem \
+            -out ${dir}/${name}.pem
 }
 
 makecert "CA_test" "./server/" "test-server"
-makecert "CA_test" "./client/" "test-client"
+#makecert "CA_test" "./client/" "test-client"
 
 echo "done."
 
