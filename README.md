@@ -50,3 +50,4 @@ make runc-with-cert     $ Succ
 [X] Add DNS(localhost) in SANs to certificates, to allow client visit `https://localhost:4433/`.
     Stuck in problem: When adds SANs to certificates, the ssl client won't use CN to match hostname??
     Solved: According to RFC6215, if SANs extention does exist, match SANs, else match subject CN.
+[ ] Hostname verification supported in the http program.

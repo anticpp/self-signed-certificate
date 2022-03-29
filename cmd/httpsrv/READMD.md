@@ -28,4 +28,6 @@
 
 ```shell=
 ./chttp server -cert ../server/test-server.pem -key ../server/test-server-key.pem -verify -cacert ../CA_test/cacert.pem
+
+./chttp client -cacert ../CA_test/cacert.pem -cert ../client/test-client.pem -key ../client/test-client-key.pem
 ```
