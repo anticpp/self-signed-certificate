@@ -32,12 +32,12 @@ certs:
 # Run server.
 runs:
 	@echo "Run s_server."
-	@sudo openssl s_server -cert server/test-server.crt  -key server/test-server.key
+	@sudo openssl s_server -cert server/test-server.pem  -key server/test-server-key.pem
 
 # Run server, with client certificate verification ON.
 runs-verify:
 	@echo "Run s_server, client verification ON."
-	@sudo openssl s_server -quiet -Verify 1 -verify_hostname test-client -verify_return_error -cert server/test-server.crt -key server/test-server.key -CAfile CA_test/cacert.pem
+	@sudo openssl s_server -quiet -Verify 1 -verify_hostname test-client -verify_return_error -cert server/test-server.pem -key server/test-server-key.pem -CAfile CA_test/cacert.pem
 
 
 # Test client without verification, the TLS connection will still go on with encrypted transport.
@@ -46,6 +46,7 @@ runc-no-verify:
 	@echo "CAfile...             [NO]"
 	@echo "Verify return error...[NO]"
 	@echo "Verify hostname...    [NO]"
+	@echo ""
 	@sudo openssl s_client -quiet
 
 # Test client with verification, the TLS connection will fail because no CAfile is provided.
@@ -54,6 +55,7 @@ runc-verify-no-ca:
 	@echo "CAfile...             [NO]"
 	@echo "Verify return error...[YES]"
 	@echo "Verify hostname...    [NO]"
+	@echo ""
 	@sudo openssl s_client -quiet -verify_return_error
 
 # Test client with verification, the TLS connection will succ because the CAfile is provided.
@@ -62,6 +64,7 @@ runc-verify-with-ca:
 	@echo "CAfile...             [YES]"
 	@echo "Verify return error...[YES]"
 	@echo "Verify hostname...    [NO]"
+	@echo ""
 	@sudo openssl s_client -quiet -verify_return_error -CAfile CA_test/cacert.pem
 
 # Test client with verification, the TLS connection will succ because the hostname is mismatched with server certificate's CN/DNS.
@@ -70,6 +73,7 @@ runc-verify-host-err:
 	@echo "CAfile...             [YES]"
 	@echo "Verify return error...[YES]"
 	@echo "Verify hostname...    [YES] ... with error name"
+	@echo ""
 	@sudo openssl s_client -quiet -verify_hostname error-server-name -verify_return_error -CAfile CA_test/cacert.pem
 
 # Test success, client open TLS connection on server, with server certificate verified success.
@@ -78,16 +82,18 @@ runc-verify-succ:
 	@echo "CAfile...             [YES]"
 	@echo "Verify return error...[YES]"
 	@echo "Verify hostname...    [YES]"
+	@echo ""
 	@sudo openssl s_client -quiet -verify_hostname test-server -verify_return_error -CAfile CA_test/cacert.pem
 
 # Test client with client certificate/key, for server side verification.
 runc-with-cert:
 	@echo "Run s_client"
-	@echo "Using test-client certificate, key"
 	@echo "CAfile...             [YES]"
 	@echo "Verify return error...[YES]"
 	@echo "Verify hostname...    [YES]"
-	@sudo openssl s_client -quiet -verify_hostname test-server -verify_return_error -CAfile CA_test/cacert.pem -cert client/test-client.crt -key client/test-client.key
+	@echo "Use client certificate... [YES]"
+	@echo ""
+	@sudo openssl s_client -quiet -verify_hostname test-server -verify_return_error -CAfile CA_test/cacert.pem -cert client/test-client.pem -key client/test-client-key.pem
 
 clean:
 	@sudo rm -rvf /etc/pki/CA_test
