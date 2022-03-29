@@ -1,7 +1,9 @@
 .PHONY: ca certs \
 		runs runs-verify \
 		runc-no-verify runc-verify-no-ca runc-verify-with-ca runc-verify-host-err runc-verify-succ runc-with-cert \
-		clean help
+		bin \
+		cleanpki cleanbin cleanall help
+
 
 .DEFAULT_GOAL := help
 
@@ -22,8 +24,16 @@ help:
 	@echo " make runc-verify-succ       # Run s_client, certificate verification succ"
 	@echo " make runc-with-cert    		# Run s_client, with client certificate"
 	@echo ""
-	@echo " make clean   				# Clean all generated key/certificate"
+	@echo " make bin                    # Build Go binaries"
+	@echo ""
+	@echo " make cleanpki   		    # Clean pki"
+	@echo " make cleanbin   		    # Clean bin"
+	@echo " make cleanall   				# Clean all"
+	@echo ""
 	@echo " make help    				# Help message"
+
+bin:
+	go build -o bin/ ./...
 
 ca:
 	@sh sbin/makeca "$(PKI_DIR)/CA_test" "test-ca"
@@ -112,5 +122,12 @@ runc-with-cert:
 	@echo ""
 	@sudo openssl s_client -quiet -verify_hostname test-server -verify_return_error -CAfile $(PKI_DIR)/CA_test/cacert.pem -cert $(PKI_DIR)/certs/client/test-client.pem -key $(PKI_DIR)/certs/client/test-client-key.pem
 
-clean:
+cleanpki:
 	@rm -rfv $(PKI_DIR)
+
+cleanbin:
+	@rm -rfv bin
+
+cleanall:
+	@rm -rfv $(PKI_DIR)
+	@rm -rfv bin
