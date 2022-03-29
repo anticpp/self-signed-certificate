@@ -17,14 +17,5 @@ function makeca() {
     openssl req -new -x509 -key ${dir}/private/cakey.pem -out ${dir}/cacert.pem -subj "/CN=${cn}"
 }
 
-makeca "CA_test" "test-ca" || exit
+[ $# -eq 2 ] && makeca $1 $2
 
-sudo ln -sf ${PWD}/CA_test /etc/pki/CA_test
-
-echo ""
-echo "========="
-echo "Succ"
-echo ""
-echo "Last to complete it:" 
-echo "  - Append ./conf/ca_test.conf to /etc/pki/tls/openssl.conf"
-echo "  - Configure /etc/pki/tls/openss.conf, set [policy_match] countryName,stateOrProvinceName,organizationName,organizationalUnitName to \"optional\"."

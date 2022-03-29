@@ -8,4 +8,4 @@ $(TARGET): main.go
 	go build -o $@ ./
 
 clean:
-	rm -fv $(TARGET)
+	@rm -fv $(TARGET)

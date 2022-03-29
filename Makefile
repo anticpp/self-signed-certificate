@@ -24,10 +24,19 @@ help:
 	@echo " make help    				# Help message"
 
 ca:
-	@sh makeca
+	@sh makeca "CA_test" "test-ca"
+	@sudo ln -sf ${PWD}/CA_test /etc/pki/CA_test
+	@echo ""
+	@echo "========="
+	@echo "Succ    "
+	@echo "========="
+	@echo "Last to complete it:" 
+	@echo "  - Append ./conf/ca_test.conf to /etc/pki/tls/openssl.conf"
+	@echo "  - Configure /etc/pki/tls/openss.conf, set [policy_match] countryName,stateOrProvinceName,organizationName,organizationalUnitName to \"optional\"."
 
 certs:
-	@sh makecerts
+	@sh makecert "CA_test" "./server/" "test-server"
+	@sh makecert "CA_test" "./client/" "test-client"
 
 # Run server.
 runs:
@@ -46,6 +55,7 @@ runc-no-verify:
 	@echo "CAfile...             [NO]"
 	@echo "Verify return error...[NO]"
 	@echo "Verify hostname...    [NO]"
+	@echo "Expecting ... [Succ]"
 	@echo ""
 	@sudo openssl s_client -quiet
 
@@ -55,6 +65,7 @@ runc-verify-no-ca:
 	@echo "CAfile...             [NO]"
 	@echo "Verify return error...[YES]"
 	@echo "Verify hostname...    [NO]"
+	@echo "Expecting ... [Fail]"
 	@echo ""
 	@sudo openssl s_client -quiet -verify_return_error
 
@@ -64,6 +75,7 @@ runc-verify-with-ca:
 	@echo "CAfile...             [YES]"
 	@echo "Verify return error...[YES]"
 	@echo "Verify hostname...    [NO]"
+	@echo "Expecting ... [Succ]"
 	@echo ""
 	@sudo openssl s_client -quiet -verify_return_error -CAfile CA_test/cacert.pem
 
@@ -73,6 +85,7 @@ runc-verify-host-err:
 	@echo "CAfile...             [YES]"
 	@echo "Verify return error...[YES]"
 	@echo "Verify hostname...    [YES] ... with error name"
+	@echo "Expecting ... [Fail]"
 	@echo ""
 	@sudo openssl s_client -quiet -verify_hostname error-server-name -verify_return_error -CAfile CA_test/cacert.pem
 
@@ -82,6 +95,7 @@ runc-verify-succ:
 	@echo "CAfile...             [YES]"
 	@echo "Verify return error...[YES]"
 	@echo "Verify hostname...    [YES]"
+	@echo "Expecting ... [Succ]"
 	@echo ""
 	@sudo openssl s_client -quiet -verify_hostname test-server -verify_return_error -CAfile CA_test/cacert.pem
 
