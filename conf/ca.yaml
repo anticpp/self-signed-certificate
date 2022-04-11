@@ -1,0 +1,14 @@
+cn: "test-ca"
+names:
+  country: []
+  organization: []
+  locality: []
+  contry: []
+  province: []
+key:
+  alg: "rsa"
+  size: 2048
+DNSs: []
+IPs: []
+expiry: 72h
+
