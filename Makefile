@@ -1,7 +1,7 @@
 .PHONY: ca certs \
 		runs runs-verify \
 		runc-no-verify runc-verify-no-ca runc-verify-with-ca runc-verify-host-err runc-verify-succ runc-with-cert \
-		bin \
+		bin test \
 		cleanpki cleanbin cleanall help
 
 
@@ -25,6 +25,7 @@ help:
 	@echo " make runc-with-cert    		# Run s_client, with client certificate"
 	@echo ""
 	@echo " make bin                    # Build Go binaries"
+	@echo " make test                   # Go test
 	@echo ""
 	@echo " make cleanpki   		    # Clean pki"
 	@echo " make cleanbin   		    # Clean bin"
@@ -127,6 +128,9 @@ cleanpki:
 
 cleanbin:
 	@rm -rfv bin
+
+test:
+	@go test ./...
 
 cleanall:
 	@rm -rfv $(PKI_DIR)
