@@ -1,14 +1,13 @@
 package config
 
 import (
-	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 )
 
 const testData = `
 cn: test-ca
-names:
 key:
   alg: rsa
   size: 2048
@@ -19,9 +18,12 @@ IPs:
   - 127.0.0.1
   - 192.168.1.1
 expiry: 72h
+isCA: true
+serial:
+  big: 1024.123
 `
 
-func TestYamlConfigReadString(t *testing.T) {
+func TestYamlConfigGet(t *testing.T) {
 	var v Value
 	var ok bool
 	var err error
@@ -30,43 +32,106 @@ func TestYamlConfigReadString(t *testing.T) {
 	c := NewYamlConfig()
 	err = c.UnmarshalFromReader(reader)
 	if err != nil {
-		t.Error(err)
+		t.Fatalf("Parse yaml config fail, err: %v", err)
 	}
-	fmt.Println(c)
 
-	v, ok = c.Get("cn")
-	if ok {
-		fmt.Println("cn:", v.ToString("default-cn"))
-	} else {
-		fmt.Println("\"cn\" not found")
+	for _, tc := range []struct {
+		key         string
+		valueKind   reflect.Kind
+		expectExist bool
+		expectValue any
+	}{
+		{key: "cn", valueKind: reflect.String, expectExist: true, expectValue: "test-ca"},         // string value
+		{key: "key.alg", valueKind: reflect.String, expectExist: true, expectValue: "rsa"},        // string value, mutilple level key
+		{key: "key.size", valueKind: reflect.Int, expectExist: true, expectValue: 2048},           // int value
+		{key: "serial.big", valueKind: reflect.Float64, expectExist: true, expectValue: 1024.123}, // float64 value
+		{key: "isCA", valueKind: reflect.Bool, expectExist: true, expectValue: true},              // boolean value
+		{key: "key.alg_not_exists", valueKind: reflect.String, expectExist: false, expectValue: ""},
+	} {
+		v, ok = c.Get(tc.key)
+		if tc.expectExist == false && ok == true {
+			t.Errorf("Fail on key \"%v\", expectExists false, but get return OK", tc.key)
+			continue
+		}
+
+		var rv any
+		switch tc.valueKind {
+		case reflect.String:
+			rv = v.ToString("")
+		case reflect.Int:
+			rv = v.ToInt(0)
+		case reflect.Bool:
+			rv = v.ToBool(false)
+		case reflect.Float64:
+			rv = v.ToFloat64(0.0)
+		default:
+			t.Logf("Warning: Test on key \"%v\", but unknown valueKind: %v\n", tc.key, tc.valueKind)
+			continue
+		}
+		if rv != tc.expectValue {
+			t.Errorf("Fail on key \"%v\", value(\"%v\")!=expectValue(\"%v\")", tc.key, rv, tc.expectValue)
+		}
 	}
-	/*
-		v, ok = c0.Get("key.alg")
-		if ok {
-			fmt.Println("key.alg:", v.ToString("default-alg"))
-		} else {
-			fmt.Println("\"key.alg\" not found")
-		}
+}
 
-		v, ok = c0.Get("key.alg_not_exists")
-		if ok {
-			fmt.Println("key.alg_not_exists:", v.ToString("default-alg"))
-		} else {
-			fmt.Println("\"key.alg_not_exists\" not found")
-		}
+func TestYamlConfigUnmarshal(t *testing.T) {
+	reader := strings.NewReader(testData)
+	c := NewYamlConfig()
+	err := c.UnmarshalFromReader(reader)
+	if err != nil {
+		t.Fatalf("Parse yaml config fail, err: %v", err)
+	}
+	v, ok := c.Get("key")
+	if !ok {
+		t.Fatalf("\"%v\" not found", "key")
+	}
 
-		v, ok = c0.Get("key")
-		if ok {
-			fmt.Println("key:", v)
-		} else {
-			fmt.Println("\"key\" not found")
-		}
+	var kc struct {
+		Alg  string `yaml:"alg,omitempty"`
+		Size int    `yaml:"size,omitempty"`
+	}
+	err = v.Unmarshal(&kc)
+	if err != nil {
+		t.Fatalf("Unmarshal error: %v", err)
+	}
 
-		var kc keyCfg
-		err = v.Unmarshal(&kc)
-		if err != nil {
-			log.Fatal(err)
+	if kc.Alg != "rsa" {
+		t.Errorf("kc.Alg(\"%v\")!=expect(\"%v\")", kc.Alg, "rsa")
+	}
+	if kc.Size != 2048 {
+		t.Errorf("kc.Size(\"%v\")!=expect(\"%v\")", kc.Alg, 2048)
+	}
+}
+
+func TestYamlConfigUnmarshalArray(t *testing.T) {
+	reader := strings.NewReader(testData)
+	c := NewYamlConfig()
+	err := c.UnmarshalFromReader(reader)
+	if err != nil {
+		t.Fatalf("Parse yaml config fail, err: %v", err)
+	}
+	v, ok := c.Get("IPs")
+	if !ok {
+		t.Fatalf("\"%v\" not found", "IPs")
+	}
+
+	var ips []string
+	err = v.Unmarshal(&ips)
+	if err != nil {
+		t.Fatalf("Unmarshal error: %v", err)
+	}
+
+	var expectIPs = []string{
+		"127.0.0.1",
+		"192.168.1.1",
+	}
+	if len(ips) != len(expectIPs) {
+		t.Errorf("len-ips(\"%v\")!=len-expect-ips(\"%v\")", len(ips), len(expectIPs))
+	}
+	for i := 0; i < len(ips); i++ {
+		if ips[i] != expectIPs[i] {
+			t.Errorf("ips[%v](%v)!=expectIPs[%v](%v)", i, ips[i], i, expectIPs[i])
+			break
 		}
-		fmt.Println(kc)
-	*/
+	}
 }

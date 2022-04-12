@@ -130,7 +130,7 @@ cleanbin:
 	@rm -rfv bin
 
 test:
-	@go test ./...
+	@go test ./... -v
 
 cleanall:
 	@rm -rfv $(PKI_DIR)
