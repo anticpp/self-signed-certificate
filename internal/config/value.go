@@ -1,8 +1,6 @@
 package config
 
 import (
-	"fmt"
-
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
@@ -22,7 +20,6 @@ func (v Value) Unmarshal(out any) error {
 	if err != nil {
 		return errors.Wrap(err, "Marshal fail")
 	}
-	fmt.Println(string(data))
 	err = yaml.Unmarshal(data, out)
 	if err != nil {
 		return errors.Wrap(err, "Unmarshal fail")
