@@ -10,17 +10,20 @@ import (
 // CommandlineConfig is used to handle config from commandline arguments.
 // All commandline arguments will be serialize to an m-way tree: map[any]any.
 type CommandlineConfig struct {
-	m      map[any]any
+	m      map[string]any
 	prefix string
 	args   []string
 }
 
-// Create YamlConfig with args.
+// Create CommandlineConfig with args.
 // You can specify a `prefix` to filter commandline arguments with the common prefix, or leaving `prefix` be empty.
 // For example, `./prog -someprefix.key.alg=rsa` will specify the key 'key.rsa'.
+//
+// The parse precess order is from left to right, thus, if the same key specified mutiple times, the last(right most) one affects.
+// For example, `./prog -key.alg=dsa .. -key.alg=rsa`, the value for `key.alg` will be `rsa`.
 func NewCommandlineConfig(args []string, prefix string) *CommandlineConfig {
 	return &CommandlineConfig{
-		m:      make(map[any]any),
+		m:      make(map[string]any),
 		prefix: prefix,
 		args:   args,
 	}
@@ -39,6 +42,7 @@ func (c *CommandlineConfig) Parse() error {
 			return errors.Wrap(err, "parseNext error")
 		}
 		fmt.Printf("{key: %v, val: %v}\n", kv.key, kv.val)
+		c.feed(kv)
 	}
 	return nil
 }
@@ -100,9 +104,40 @@ func (c *CommandlineConfig) parseNext() (*kv, error) {
 		if !has {
 			return nil, nil
 		}
-
 		key = key[len(c.prefix)+1:]
 	}
 
 	return &kv{key, val}, nil
+}
+
+// Feed key/val to the map[any]any
+func (c *CommandlineConfig) feed(kv *kv) {
+	var cur map[string]any
+
+	cur = c.m
+	names := strings.Split(kv.key, ".")
+	for i, name := range names {
+		// Leaf node, update value
+		if i == len(names) {
+			cur[name] = kv.val
+			continue
+		}
+
+		// Tree node does not exists, create new node.
+		m, ok := cur[name]
+		if !ok {
+			cur[name] = make(map[string]any)
+		}
+		m = cur[name]
+
+		// If it's not a tree node(but leaf node), replace it with a tree node.
+		_, ok = m.(map[string]any)
+		if !ok {
+			cur[name] = make(map[string]any)
+		}
+		m = cur[name]
+
+		// Move next
+		cur = m.(map[string]any)
+	}
 }

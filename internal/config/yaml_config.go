@@ -12,13 +12,13 @@ import (
 
 // YamlConfig is used to handle yaml config file.
 type YamlConfig struct {
-	m map[any]any
+	m map[string]any
 }
 
 // Create YamlConfig.
 func NewYamlConfig() *YamlConfig {
 	return &YamlConfig{
-		m: make(map[any]any),
+		m: make(map[string]any),
 	}
 }
 
@@ -55,20 +55,21 @@ func (c *YamlConfig) UnmarshalFromReader(reader io.Reader) error {
 }
 
 // Implementation of Config.Get()
-func (c *YamlConfig) Get(key string) (Value, bool) {
+func (c *YamlConfig) Get(key string) *Value {
 	var cur any = c.m
 	names := strings.Split(key, ".")
 	for _, name := range names {
 		switch m := cur.(type) {
 		case map[any]any:
 			cur = m[name]
+		case map[string]any:
+			cur = m[name]
 		default:
 			cur = nil
-			break
 		}
 	}
 	if cur == nil {
-		return Value{}, false
+		return nil
 	}
-	return Value{cur}, true
+	return &Value{cur}
 }

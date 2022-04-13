@@ -21,11 +21,12 @@ expiry: 72h
 isCA: true
 serial:
   big: 1024.123
+  attr:
+    name: seq
 `
 
 func TestYamlConfigGet(t *testing.T) {
-	var v Value
-	var ok bool
+	var v *Value
 	var err error
 
 	reader := strings.NewReader(testData)
@@ -41,16 +42,19 @@ func TestYamlConfigGet(t *testing.T) {
 		expectExist bool
 		expectValue any
 	}{
-		{key: "cn", valueKind: reflect.String, expectExist: true, expectValue: "test-ca"},         // string value
-		{key: "key.alg", valueKind: reflect.String, expectExist: true, expectValue: "rsa"},        // string value, mutilple level key
-		{key: "key.size", valueKind: reflect.Int, expectExist: true, expectValue: 2048},           // int value
-		{key: "serial.big", valueKind: reflect.Float64, expectExist: true, expectValue: 1024.123}, // float64 value
-		{key: "isCA", valueKind: reflect.Bool, expectExist: true, expectValue: true},              // boolean value
-		{key: "key.alg_not_exists", valueKind: reflect.String, expectExist: false, expectValue: ""},
+		{key: "cn", valueKind: reflect.String, expectExist: true, expectValue: "test-ca"},           // string value
+		{key: "key.alg", valueKind: reflect.String, expectExist: true, expectValue: "rsa"},          // string value, multilple level key
+		{key: "key.size", valueKind: reflect.Int, expectExist: true, expectValue: 2048},             // int value
+		{key: "serial.big", valueKind: reflect.Float64, expectExist: true, expectValue: 1024.123},   // float64 value
+		{key: "serial.attr.name", valueKind: reflect.String, expectExist: true, expectValue: "seq"}, // string value, multiple level key
+		{key: "isCA", valueKind: reflect.Bool, expectExist: true, expectValue: true},                // boolean value
+		{key: "key.alg_not_exists", valueKind: reflect.String, expectExist: false, expectValue: ""}, // Not exists key
 	} {
-		v, ok = c.Get(tc.key)
-		if tc.expectExist == false && ok == true {
-			t.Errorf("Fail on key \"%v\", expectExists false, but get return OK", tc.key)
+		v = c.Get(tc.key)
+		if tc.expectExist == false {
+			if v != nil {
+				t.Errorf("Fail on key \"%v\", expectExists false, but get return OK", tc.key)
+			}
 			continue
 		}
 
@@ -81,8 +85,8 @@ func TestYamlConfigUnmarshal(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Parse yaml config fail, err: %v", err)
 	}
-	v, ok := c.Get("key")
-	if !ok {
+	v := c.Get("key")
+	if v == nil {
 		t.Fatalf("\"%v\" not found", "key")
 	}
 
@@ -110,8 +114,8 @@ func TestYamlConfigUnmarshalArray(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Parse yaml config fail, err: %v", err)
 	}
-	v, ok := c.Get("IPs")
-	if !ok {
+	v := c.Get("IPs")
+	if v == nil {
 		t.Fatalf("\"%v\" not found", "IPs")
 	}
 

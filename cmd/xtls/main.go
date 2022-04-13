@@ -22,33 +22,32 @@ func main() {
 	c0.UnmarshalFromFile("./conf/ca.yaml")
 	fmt.Println(c0)
 
-	var v config.Value
-	var ok bool
+	var v *config.Value
 	var err error
 
-	v, ok = c0.Get("cn")
-	if ok {
+	v = c0.Get("cn")
+	if v != nil {
 		fmt.Println("cn:", v.ToString("default-cn"))
 	} else {
 		fmt.Println("\"cn\" not found")
 	}
 
-	v, ok = c0.Get("key.alg")
-	if ok {
+	v = c0.Get("key.alg")
+	if v != nil {
 		fmt.Println("key.alg:", v.ToString("default-alg"))
 	} else {
 		fmt.Println("\"key.alg\" not found")
 	}
 
-	v, ok = c0.Get("key.alg_not_exists")
-	if ok {
+	v = c0.Get("key.alg_not_exists")
+	if v != nil {
 		fmt.Println("key.alg_not_exists:", v.ToString("default-alg"))
 	} else {
 		fmt.Println("\"key.alg_not_exists\" not found")
 	}
 
-	v, ok = c0.Get("key")
-	if ok {
+	v = c0.Get("key")
+	if v != nil {
 		fmt.Println("key:", v)
 	} else {
 		fmt.Println("\"key\" not found")

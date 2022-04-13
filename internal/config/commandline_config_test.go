@@ -3,10 +3,6 @@ package config
 import "testing"
 
 func TestCommandlineConfigParseNext(t *testing.T) {
-	args := []string{
-		"-someprefix.cn=test-cn",
-	}
-
 	for _, tc := range []struct {
 		args     []string
 		prefix   string
@@ -36,7 +32,7 @@ func TestCommandlineConfigParseNext(t *testing.T) {
 		c := NewCommandlineConfig(tc.args, tc.prefix)
 		kv, err := c.parseNext()
 		if err != nil {
-			t.Errorf("args [%v] fail, Parse config error: %v", args, err)
+			t.Errorf("args [%v] fail, Parse config error: %v", tc.args, err)
 			continue
 		}
 
@@ -53,7 +49,5 @@ func TestCommandlineConfigParseNext(t *testing.T) {
 			t.Errorf("args [%v] fail, kv(%v)!=expectKV(%v)\n", tc.args, kv, tc.expectKV)
 			continue
 		}
-
 	}
-
 }
