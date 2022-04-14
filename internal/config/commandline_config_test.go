@@ -66,7 +66,7 @@ func TestCommandlineConfigParse(t *testing.T) {
 		expectKVs []*kv
 	}{
 		{
-			[]string{"-cn=test-cn", "-key.alg=rsa", "-key.size=2048", "-serial.big=1024.123"},
+			[]string{"-cn=test-cn", "-key.alg=rsa", "-key.size=2048", "-serial.attr.name=serial1", "-serial.big=1024.123", "-serial.attr.name=serial2"},
 			[]*kv{
 				{"cn", "test-cn"},
 				{"key.alg", "rsa"},
@@ -75,6 +75,7 @@ func TestCommandlineConfigParse(t *testing.T) {
 				{"serial.big", "1024.123"},
 				{"serial.big", float64(1024.123)}, // string can interpreted as float64
 				{"key.alg_not_exists", nil},
+				{"serial.attr.name", "serial2"}, // The last argument will be used
 			},
 		},
 	} {
