@@ -139,3 +139,23 @@ func (c *CommandlineConfig) feed(kv *kv) {
 		cur = m.(map[string]any)
 	}
 }
+
+// Get value with key, see Config.Get().
+func (c *CommandlineConfig) Get(key string) *Value {
+	var cur any = c.m
+	names := strings.Split(key, ".")
+	for _, name := range names {
+		switch m := cur.(type) {
+		case map[any]any:
+			cur = m[name]
+		case map[string]any:
+			cur = m[name]
+		default:
+			cur = nil
+		}
+	}
+	if cur == nil {
+		return nil
+	}
+	return &Value{cur}
+}

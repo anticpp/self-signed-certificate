@@ -38,42 +38,41 @@ func TestYamlConfigGet(t *testing.T) {
 
 	for _, tc := range []struct {
 		key         string
-		valueKind   reflect.Kind
 		expectExist bool
 		expectValue any
 	}{
-		{key: "cn", valueKind: reflect.String, expectExist: true, expectValue: "test-ca"},           // string value
-		{key: "key.alg", valueKind: reflect.String, expectExist: true, expectValue: "rsa"},          // string value, multilple level key
-		{key: "key.size", valueKind: reflect.Int, expectExist: true, expectValue: 2048},             // int value
-		{key: "serial.big", valueKind: reflect.Float64, expectExist: true, expectValue: 1024.123},   // float64 value
-		{key: "serial.attr.name", valueKind: reflect.String, expectExist: true, expectValue: "seq"}, // string value, multiple level key
-		{key: "isCA", valueKind: reflect.Bool, expectExist: true, expectValue: true},                // boolean value
-		{key: "key.alg_not_exists", valueKind: reflect.String, expectExist: false, expectValue: ""}, // Not exists key
+		{key: "cn", expectValue: "test-ca"},                 // string value
+		{key: "key.alg", expectValue: "rsa"},                // string value, multilple level key
+		{key: "key.size", expectValue: int64(2048)},         // int value
+		{key: "serial.big", expectValue: float64(1024.123)}, // float64 value
+		{key: "serial.attr.name", expectValue: "seq"},       // string value, multiple level key
+		{key: "isCA", expectValue: true},                    // boolean value
+		{key: "key.alg_not_exists", expectValue: nil},       // Not exists key
 	} {
 		v = c.Get(tc.key)
-		if tc.expectExist == false {
-			if v != nil {
-				t.Errorf("Fail on key \"%v\", expectExists false, but get return OK", tc.key)
-			}
-			continue
-		}
 
-		var rv any
-		switch tc.valueKind {
-		case reflect.String:
-			rv = v.ToString("")
-		case reflect.Int:
-			rv = v.ToInt(0)
-		case reflect.Bool:
-			rv = v.ToBool(false)
-		case reflect.Float64:
-			rv = v.ToFloat64(0.0)
+		var vv any
+		switch tc.expectValue.(type) {
+		case string:
+			vv = v.ToString("")
+		case int64:
+			vv = v.ToInt(0)
+		case bool:
+			vv = v.ToBool(false)
+		case float64:
+			vv = v.ToFloat(0.0)
+		case nil:
+			// Expect not exists
+			// Set vv=nil
+			vv = nil
 		default:
-			t.Logf("Warning: Test on key \"%v\", but unknown valueKind: %v\n", tc.key, tc.valueKind)
+			t.Logf("Warning: Test on key \"%v\", unsupported value type: %v, you can use type constraint on expectValue\n",
+				tc.key, reflect.TypeOf(tc.expectValue))
 			continue
 		}
-		if rv != tc.expectValue {
-			t.Errorf("Fail on key \"%v\", value(\"%v\")!=expectValue(\"%v\")", tc.key, rv, tc.expectValue)
+		if vv != tc.expectValue {
+			t.Errorf("Fail on key \"%v\", value(\"%v\")!=expectValue(\"%v\")", tc.key, vv, tc.expectValue)
+			continue
 		}
 	}
 }
