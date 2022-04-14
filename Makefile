@@ -25,7 +25,7 @@ help:
 	@echo " make runc-with-cert         # Run s_client, with client certificate"
 	@echo ""
 	@echo " make bin                    # Build Go binaries"
-	@echo " make test                   # Go test"
+	@echo " make test                   # Run Go test"
 	@echo ""
 	@echo " make cleanpki               # Clean pki"
 	@echo " make cleanbin               # Clean bin"

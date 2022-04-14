@@ -1,11 +1,11 @@
 package config
 
-// Abstract interface of Config.
+// All config source should be of Config type.
 type Config interface {
-	// Get value with key.
-	// Key is a multiple segments splited by '.', for example: 'key.alg'.
+	// Get value with key. Key is multiple level splited by '.', for example: 'key.alg'.
+	// Return nil if key does not exist.
 	Get(string) *Value
 
-	// Handy for debug printing.
+	// For printable
 	String() string
 }

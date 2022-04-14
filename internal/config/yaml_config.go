@@ -22,7 +22,7 @@ func NewYamlConfig() *YamlConfig {
 	}
 }
 
-// Implementation of Config.String()
+// For printable.
 func (c *YamlConfig) String() string {
 	return fmt.Sprintf("YamlConfig: {%v}", c.m)
 }
@@ -54,7 +54,7 @@ func (c *YamlConfig) UnmarshalFromReader(reader io.Reader) error {
 
 }
 
-// Implementation of Config.Get()
+// Get value with key, see Config.Get().
 func (c *YamlConfig) Get(key string) *Value {
 	var cur any = c.m
 	names := strings.Split(key, ".")

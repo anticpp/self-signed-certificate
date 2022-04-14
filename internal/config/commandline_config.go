@@ -8,7 +8,7 @@ import (
 )
 
 // CommandlineConfig is used to handle config from commandline arguments.
-// All commandline arguments will be serialize to an m-way tree: map[any]any.
+// All commandline arguments will be serialized to tree: map[string]any.
 type CommandlineConfig struct {
 	m      map[string]any
 	prefix string
@@ -17,9 +17,9 @@ type CommandlineConfig struct {
 
 // Create CommandlineConfig with args.
 // You can specify a `prefix` to filter commandline arguments with the common prefix, or leaving `prefix` be empty.
-// For example, `./prog -someprefix.key.alg=rsa` will specify the key 'key.rsa'.
+// For example, `./prog -someprefix.key.alg=rsa` will specify the key 'key.rsa' with prefix 'someprefix'.
 //
-// The parse precess order is from left to right, thus, if the same key specified mutiple times, the last(right most) one affects.
+// The parsing priority is from left to right, that means, if the same key specified multiple times, the right most one will affects.
 // For example, `./prog -key.alg=dsa .. -key.alg=rsa`, the value for `key.alg` will be `rsa`.
 func NewCommandlineConfig(args []string, prefix string) *CommandlineConfig {
 	return &CommandlineConfig{
@@ -29,19 +29,18 @@ func NewCommandlineConfig(args []string, prefix string) *CommandlineConfig {
 	}
 }
 
-// Implementation of Config.String()
+// Printable.
 func (c *CommandlineConfig) String() string {
 	return fmt.Sprintf("CommandlineConfig: {%v}", c.m)
 }
 
-// Start parse commandline arguments
+// Parse all arguments.
 func (c *CommandlineConfig) Parse() error {
 	for c.hasMore() {
 		kv, err := c.parseNext()
 		if err != nil {
 			return errors.Wrap(err, "parseNext error")
 		}
-		fmt.Printf("{key: %v, val: %v}\n", kv.key, kv.val)
 		c.feed(kv)
 	}
 	return nil
@@ -64,8 +63,9 @@ func (c *CommandlineConfig) popNextArg() (string, bool) {
 }
 
 // Parse next key/val from `args`.
-// Return `*kv` if a new key/val is parsed success. `*kv` may return nil if error happens, or the next argument is filtered out by prefix.
-// `error` indicates invalid arguments, the caller can stop or continue the process.
+// `*kv` return not nil: if a new key/val is parsed success.
+// `*kv` return nil:     1. error happens, 2) the next argument is filtered out by prefix.
+// `error` indicates invalid arguments, the caller can stop or continue the next parse..
 func (c *CommandlineConfig) parseNext() (*kv, error) {
 	s0, ok := c.popNextArg()
 	if !ok {
@@ -110,15 +110,13 @@ func (c *CommandlineConfig) parseNext() (*kv, error) {
 	return &kv{key, val}, nil
 }
 
-// Feed key/val to the map[any]any
+// Feed key/val to the map
 func (c *CommandlineConfig) feed(kv *kv) {
-	var cur map[string]any
-
-	cur = c.m
+	cur := c.m
 	names := strings.Split(kv.key, ".")
 	for i, name := range names {
 		// Leaf node, update value
-		if i == len(names) {
+		if i == len(names)-1 {
 			cur[name] = kv.val
 			continue
 		}

@@ -1,6 +1,9 @@
 package config
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestCommandlineConfigParseNext(t *testing.T) {
 	for _, tc := range []struct {
@@ -50,4 +53,18 @@ func TestCommandlineConfigParseNext(t *testing.T) {
 			continue
 		}
 	}
+}
+
+func TestCommandlineConfigParse(t *testing.T) {
+	args := []string{
+		"-cn=test-cn",
+		"-key.alg=rsa",
+		"-key.size=2048",
+	}
+	c := NewCommandlineConfig(args, "")
+	err := c.Parse()
+	if err != nil {
+		t.Fatalf("args [%v] fail, Parse config error: %v", args, err)
+	}
+	fmt.Println(c)
 }
