@@ -32,6 +32,12 @@ func TestCommandlineConfigParseNext(t *testing.T) {
 		// Mutiple level key
 		{[]string{"-key.alg=rsa"}, "", &kv{"key.alg", "rsa"}},
 		{[]string{"-key.size=2048"}, "", &kv{"key.size", "2048"}},
+
+		// Quoted string
+		{[]string{"-key.size=\"2048\""}, "", &kv{"key.size", "\"2048\""}},
+		{[]string{"-key.size='2048'"}, "", &kv{"key.size", "'2048'"}},
+		{[]string{"-key.size", "\"2048\""}, "", &kv{"key.size", "\"2048\""}},
+		{[]string{"-key.size", "'2048'"}, "", &kv{"key.size", "'2048'"}},
 	} {
 		c := NewCommandlineConfig(tc.args, tc.prefix)
 		kv, err := c.parseNext()
@@ -66,16 +72,36 @@ func TestCommandlineConfigParse(t *testing.T) {
 		expectKVs []*kv
 	}{
 		{
-			[]string{"-cn=test-cn", "-key.alg=rsa", "-key.size=2048", "-serial.attr.name=serial1", "-serial.big=1024.123", "-serial.attr.name=serial2"},
+			[]string{
+				"-cn=test-cn",
+				"-name=\"test-cn\"",         // Double quote
+				"-label='test'",             // Single quote
+				"-serial.sid=\"999\"",       // Quoted number
+				"-serial.big2=\"1024.123\"", // Quoted float
+				"-key.alg=rsa",
+				"-key.size=2048",
+				"-serial.attr.name=serial1",
+				"-serial.big=1024.123",
+				"-serial.small=-1024.123",
+				"-serial.attr.name=serial2",
+			},
 			[]*kv{
+				// String value
 				{"cn", "test-cn"},
 				{"key.alg", "rsa"},
-				{"key.size", "2048"},
-				{"key.size", int64(2048)}, // string can be interpreted as int64
-				{"serial.big", "1024.123"},
-				{"serial.big", float64(1024.123)}, // string can interpreted as float64
+				// With quotes
+				{"name", "test-cn"},         // Double quoted string, the quotes should be stripped.
+				{"label", "test"},           // Single quoted string, the quotes should be stripped
+				{"serial.sid", "999"},       // Quoted int is interpreted as string too
+				{"serial.big2", "1024.123"}, // Quoted float is interpreted as string too
+				// int/float
+				{"key.size", int64(2048)},            // int
+				{"serial.big", float64(1024.123)},    // float64
+				{"serial.small", float64(-1024.123)}, // Nagtive float64
+				// Not exists
 				{"key.alg_not_exists", nil},
-				{"serial.attr.name", "serial2"}, // The last argument will be used
+				/// Right priority
+				{"serial.attr.name", "serial2"}, // The priority is from last to previous, thus, the last arguments will replace the previous one.
 			},
 		},
 	} {
@@ -117,3 +143,37 @@ func TestCommandlineConfigParse(t *testing.T) {
 		} // endof for _, expectKV {}
 	} // endof for _, tc {}
 }
+
+/*
+func TestCommandlineConfigUnmarshal(t *testing.T) {
+	args := []string{
+		"-key.alg=rsa",
+		"-key.size=2048",
+	}
+	c := NewCommandlineConfig(args, "")
+	err := c.Parse()
+	if err != nil {
+		t.Fatalf("Test args [%v] fail, Parse config error: %v", args, err)
+	}
+	v := c.Get("key")
+	if v == nil {
+		t.Fatalf("\"%v\" not found", "key")
+	}
+
+	var kc struct {
+		Alg  string `yaml:"alg,omitempty"`
+		Size int    `yaml:"size,omitempty"`
+	}
+	fmt.Println(v)
+	err = v.Unmarshal(&kc)
+	if err != nil {
+		t.Fatalf("Unmarshal error: %v", err)
+	}
+
+	if kc.Alg != "rsa" {
+		t.Errorf("kc.Alg(\"%v\")!=expect(\"%v\")", kc.Alg, "rsa")
+	}
+	if kc.Size != 2048 {
+		t.Errorf("kc.Size(\"%v\")!=expect(\"%v\")", kc.Alg, 2048)
+	}
+}*/

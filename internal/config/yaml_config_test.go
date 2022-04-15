@@ -37,7 +37,8 @@ func TestYamlConfigGet(t *testing.T) {
 	}
 
 	for _, tc := range []struct {
-		key         string
+		key string
+
 		expectExist bool
 		expectValue any
 	}{

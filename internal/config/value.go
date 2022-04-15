@@ -1,13 +1,25 @@
 package config
 
 import (
-	"strconv"
-
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
-// Value is an abstract object simple wrap of `any` type.
+// Value is a simple wrapper of `any` type.
+//
+// For simplify, get buildin types with `ToXXX()` are unified as followed:
+//   - String
+//		 string                     -> string
+//   - Int
+//		 int/int8/int16/int32/int64 -> int64
+//   - Float
+//		 float32/float64            -> float64
+//   - Bool
+//		 bool                       -> bool
+//
+// Otherwise, if use `Unmarshal()`, the out types are defined by `yaml` specs,
+// because we use `yaml Marshal/Unmarshal` as implementation.
+// Follow https://learn.getgrav.org/17/advanced/yaml.
 type Value struct {
 	any
 }
@@ -37,8 +49,7 @@ func (v *Value) TryString() (string, bool) {
 }
 
 // Try to convert value to int.
-// Alway use int64 here, thus int8/int16/int/int32 will be assigned to int64.
-// If value type is string, try to parse to int64.
+// int/int8/int16/int32/int64 -> int64
 // The `bool` return true if success, or false if fails.
 func (v *Value) TryInt() (int64, bool) {
 	var vv int64
@@ -46,13 +57,13 @@ func (v *Value) TryInt() (int64, bool) {
 
 	// TODO: Destroy the boring `case`.
 	switch vvv := v.any.(type) {
+	case int:
+		vv = int64(vvv)
+		ok = true
 	case int8:
 		vv = int64(vvv)
 		ok = true
 	case int16:
-		vv = int64(vvv)
-		ok = true
-	case int:
 		vv = int64(vvv)
 		ok = true
 	case int32:
@@ -61,22 +72,14 @@ func (v *Value) TryInt() (int64, bool) {
 	case int64:
 		vv = int64(vvv)
 		ok = true
-	case string:
-		var err error
-		vv, err = strconv.ParseInt(vvv, 10, 64)
-		if err != nil {
-			ok = false
-			break
-		}
-		ok = true
 	default:
 		ok = false
 	}
 	return vv, ok
 }
 
-// Try to convert value to float46.
-// float32 will be assigned to float64.
+// Try to convert value to float.
+// float32/float64            -> float64
 // The `bool` return true if success, or false if fails.
 func (v *Value) TryFloat() (float64, bool) {
 	var vv float64
@@ -87,14 +90,6 @@ func (v *Value) TryFloat() (float64, bool) {
 		ok = true
 	case float64:
 		vv = vvv
-		ok = true
-	case string:
-		var err error
-		vv, err = strconv.ParseFloat(vvv, 64)
-		if err != nil {
-			ok = false
-			break
-		}
 		ok = true
 	default:
 		ok = false
@@ -121,7 +116,6 @@ func (v *Value) ToString(defaultValue string) string {
 }
 
 // Try to convert value to int.
-// Always use int64 here.
 // Return `defaultValue` if fails.
 func (v *Value) ToInt(defaultValue int64) int64 {
 	vv, ok := v.TryInt()
@@ -131,7 +125,7 @@ func (v *Value) ToInt(defaultValue int64) int64 {
 	return vv
 }
 
-// Try to convert value to float64.
+// Try to convert value to float.
 // Return `defaultValue` if fails.
 func (v *Value) ToFloat(defaultValue float64) float64 {
 	vv, ok := v.TryFloat()
@@ -162,7 +156,6 @@ func (v *Value) MustString() string {
 }
 
 // Try to convert value to int.
-// Always use int64.
 // Panic if fails.
 func (v *Value) MustInt() int64 {
 	vv, ok := v.TryInt()
@@ -172,7 +165,7 @@ func (v *Value) MustInt() int64 {
 	return vv
 }
 
-// Try to convert value to float64.
+// Try to convert value to float.
 // Panic if fails.
 func (v *Value) MustFloat() float64 {
 	vv, ok := v.TryFloat()

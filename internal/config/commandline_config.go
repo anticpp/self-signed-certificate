@@ -9,18 +9,37 @@ import (
 
 // CommandlineConfig is used to handle config from commandline arguments.
 // All commandline arguments will be serialized to tree: map[string]any.
+//
+// Type interpretation:
+// The default value type is string as default, for example, `-animal=dog`.
+// If a number is specified, for example, `-age=25`, the value is interpreted as int value.
+// It's the same on float value, for example, `-angel=13.5`, the value is interpreted as float value.
+// You can expcitly quote the value, for example, `-age="25"`, the value is always interpreted as string value.
+//
+// Value type interpretations examples:
+//   -animal=dog          string: "dog"
+//   -age=25              int: 25
+//   -age="25"            string: "25"           -- Quoted string
+//   -age='25'            string: "25"           -- Quoted string
+//   -angel=13.5          float: 13.5
+//   -angel="13.5"        string: "13.5"         -- Quoted string
+//   -heigh=13m           string: "13m"
+//
+// About prefix:
+// You can specify a `prefix` to filter commandline arguments with the common prefix, or leaving `prefix` be empty.
+// For example, `./prog -someprefix.key.alg=rsa` will specify the key 'key.rsa' with prefix 'someprefix'.
+//
+// Priority:
+// The parsing process is from left to righ arguments, the latter parsed key/value will replace the previous ones.
+// Thus, the key/value priority is from right to left.
+// For example, `./prog -key.alg=dsa .. -key.alg=rsa`, the value for `key.alg` should be `rsa`.
 type CommandlineConfig struct {
 	m      map[string]any
 	prefix string
 	args   []string
 }
 
-// Create CommandlineConfig with args.
-// You can specify a `prefix` to filter commandline arguments with the common prefix, or leaving `prefix` be empty.
-// For example, `./prog -someprefix.key.alg=rsa` will specify the key 'key.rsa' with prefix 'someprefix'.
-//
-// The parsing priority is from left to right, that means, if the same key specified multiple times, the right most one will affects.
-// For example, `./prog -key.alg=dsa .. -key.alg=rsa`, the value for `key.alg` will be `rsa`.
+// Create CommandlineConfig
 func NewCommandlineConfig(args []string, prefix string) *CommandlineConfig {
 	return &CommandlineConfig{
 		m:      make(map[string]any),
