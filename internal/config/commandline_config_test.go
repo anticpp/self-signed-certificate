@@ -144,36 +144,56 @@ func TestCommandlineConfigParse(t *testing.T) {
 	} // endof for _, tc {}
 }
 
-/*
 func TestCommandlineConfigUnmarshal(t *testing.T) {
 	args := []string{
-		"-key.alg=rsa",
-		"-key.size=2048",
+		"-config.key.alg=rsa",
+		"-config.key.size=2048",
+		"-config.serial.sid=\"999\"",
+		"-config.serial.big=123.12",
+		"-config.serial.big2=\"123.12\"",
+		"-config.serial.sid=\"888\"", // Prior to previous "999"
 	}
 	c := NewCommandlineConfig(args, "")
 	err := c.Parse()
 	if err != nil {
 		t.Fatalf("Test args [%v] fail, Parse config error: %v", args, err)
 	}
-	v := c.Get("key")
+	v := c.Get("config")
 	if v == nil {
-		t.Fatalf("\"%v\" not found", "key")
+		t.Fatalf("Get \"%v\" not found", "config")
 	}
 
-	var kc struct {
-		Alg  string `yaml:"alg,omitempty"`
-		Size int    `yaml:"size,omitempty"`
+	var cfg struct {
+		Key struct {
+			Alg  string `yaml:"alg,omitempty"`
+			Size int    `yaml:"size,omitempty"`
+		} `yaml:"key,omitempty"`
+		Serial struct {
+			Sid  string  `yaml:"sid,omitempty"`
+			Big  float64 `yaml:"big,omitempty"`
+			Big2 string  `yaml:"big2,omitempty"`
+		} `yaml:"serial,omitempty"`
 	}
-	fmt.Println(v)
-	err = v.Unmarshal(&kc)
+	err = v.Unmarshal(&cfg)
 	if err != nil {
 		t.Fatalf("Unmarshal error: %v", err)
 	}
 
-	if kc.Alg != "rsa" {
-		t.Errorf("kc.Alg(\"%v\")!=expect(\"%v\")", kc.Alg, "rsa")
+	if cfg.Key.Alg != "rsa" {
+		t.Errorf("cfg.Key.Alg(\"%v\")!=expect(\"%v\")", cfg.Key.Alg, "rsa")
 	}
-	if kc.Size != 2048 {
-		t.Errorf("kc.Size(\"%v\")!=expect(\"%v\")", kc.Alg, 2048)
+	if cfg.Key.Size != 2048 {
+		t.Errorf("cfg.Key.Size(\"%v\")!=expect(\"%v\")", cfg.Key.Alg, 2048)
 	}
-}*/
+
+	if cfg.Serial.Sid != "888" {
+		t.Errorf("cfg.Serial.Sid(\"%v\")!=expect(\"%v\")", cfg.Serial.Sid, "999")
+	}
+	if cfg.Serial.Big != 123.12 {
+		t.Errorf("cfg.Serial.Big(\"%v\")!=expect(\"%v\")", cfg.Serial.Big, 123.12)
+	}
+	if cfg.Serial.Big2 != "123.12" {
+		t.Errorf("cfg.Serial.Big2(\"%v\")!=expect(\"%v\")", cfg.Serial.Big2, "123.12")
+	}
+
+}
