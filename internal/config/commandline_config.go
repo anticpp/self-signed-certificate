@@ -131,12 +131,21 @@ func (c *CommandlineConfig) parseNext() (*kv, error) {
 
 // Feed key/val to the map
 func (c *CommandlineConfig) feed(kv *kv) {
+	// Commandline value must be string
+	ss, ok := kv.val.(string)
+	if !ok {
+		return
+	}
+
+	// Parse scalar value
+	val := parseScalar(ss)
+
 	cur := c.m
 	names := strings.Split(kv.key, ".")
 	for i, name := range names {
 		// Leaf node, update value
 		if i == len(names)-1 {
-			cur[name] = kv.val
+			cur[name] = val
 			continue
 		}
 
