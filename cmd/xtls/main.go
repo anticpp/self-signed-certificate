@@ -37,15 +37,19 @@ func makeca(outCertFile, outKeyFile string) error {
 	template := x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
-			CommonName:   "test CA",
-			Organization: []string{"No Corp"},
+			CommonName: "test-ca",
+			/*Organization:  []string{"Company, INC"},
+			Country:       []string{"US"},
+			Province:      []string{""},
+			Locality:      []string{"San Franscisco"},
+			StreetAddress: []string{"Golden Gate Bridge"},
+			PostalCode:    []string{"94016"},*/
 		},
-		IsCA:      true,
-		NotBefore: time.Now(),
-		NotAfter:  time.Now().Add(3 * time.Hour),
-
-		KeyUsage:              x509.KeyUsageDigitalSignature,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().Add(3 * time.Hour),
+		IsCA:                  true,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 		BasicConstraintsValid: true,
 	}
 
