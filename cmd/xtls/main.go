@@ -8,6 +8,7 @@ package main
 import (
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
@@ -19,6 +20,106 @@ import (
 
 	"github.com/pkg/errors"
 )
+
+type caConfig struct {
+	Expiry time.Duration `yaml:"expiry,omitempty"`
+}
+
+type csrConfig struct {
+	CommonName string `yaml:"cn,omitempty"`
+	Key        struct {
+		Alg  string
+		Size int
+	} `yaml:"key,omitempty"`
+	Names struct {
+		Country            []string
+		Organization       []string
+		OrganizationalUnit []string
+		Locality           []string
+		Province           []string
+		StreetAddress      []string
+		PostalCode         []string
+	} `yaml:"names,omitempty"`
+	DNSNames []string `yaml:"dns,omitempty"`
+	IPs      []string `yaml:"ips,omitempty"`
+}
+
+func genX509KeyPair(caCfg *caConfig,
+	csrCfg *csrConfig,
+	parentCert *x509.Certificate,
+	parentPrivateKey any,
+) (*tls.Certificate, error) {
+	var cert tls.Certificate
+	var privateKey *rsa.PrivateKey
+	var serialNumberLimit, serialNumber *big.Int
+	var certBytes, keyBytes []byte
+	var certPEMBlock, keyPEMBlock []byte
+	var err error
+	var isCA = false
+
+	if parent == nil {
+		isCA = true
+	}
+
+	// Create private key
+	privateKey, err = rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to generate private key")
+	}
+
+	// Create certificate template
+	serialNumberLimit = new(big.Int).Lsh(big.NewInt(1), 128)
+	serialNumber, err = rand.Int(rand.Reader, serialNumberLimit)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to serialNumber")
+	}
+
+	template := x509.Certificate{
+		SerialNumber: serialNumber,
+		Subject: pkix.Name{
+			CommonName: csrCfg.CommonName,
+			/*Organization:  []string{"Company, INC"},
+			Country:       []string{"US"},
+			Province:      []string{""},
+			Locality:      []string{"San Franscisco"},
+			StreetAddress: []string{"Golden Gate Bridge"},
+			PostalCode:    []string{"94016"},*/
+		},
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().Add(caCfg.Expiry),
+		IsCA:                  isCA,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+		BasicConstraintsValid: true,
+	}
+
+	// Create certificate data
+	certBytes, err = x509.CreateCertificate(rand.Reader, &template, &template, &privateKey.PublicKey, privateKey)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to create certificate")
+	}
+
+	certPEMBlock = pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certBytes})
+	if certPEMBlock == nil {
+		return nil, errors.New("Failed to encode certificate to PEM")
+	}
+
+	// Create private key data
+	keyBytes, err = x509.MarshalPKCS8PrivateKey(privateKey)
+	if err != nil {
+		return nil, errors.Wrap(err, "Unable to marshal private key")
+	}
+	keyPEMBlock = pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: keyBytes})
+	if keyPEMBlock == nil {
+		return nil, errors.New("Failed to encode key to PEM")
+	}
+
+	cert, err = tls.X509KeyPair(certPEMBlock, keyPEMBlock)
+	if err != nil {
+		return nil, errors.New("Fail to get X509KeyPair")
+	}
+	return &cert, nil
+}
 
 func makeca(outCertFile, outKeyFile string) error {
 	// Create private key
